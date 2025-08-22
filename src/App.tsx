@@ -1,23 +1,32 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Header } from './components/Layout/Header';
-import { PlotMap } from './components/Map/PlotMap';
-import { LoginForm } from './components/Auth/LoginForm';
+import { EnhancedPlotMap } from './components/Map/EnhancedPlotMap';
+import { SupabaseAuthForm } from './components/Auth/SupabaseAuthForm';
 import { UserDashboard } from './components/Dashboard/UserDashboard';
 import { AdminDashboard } from './components/Admin/AdminDashboard';
-import { useAuthStore } from './store/authStore';
+import { useSupabaseAuth } from './hooks/useSupabaseAuth';
+import { LoadingSpinner } from './components/UI/LoadingSpinner';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode; adminOnly?: boolean }> = ({ 
   children, 
   adminOnly = false 
 }) => {
-  const { isAuthenticated, user } = useAuthStore();
+  const { isAuthenticated, isAdmin, loading } = useSupabaseAuth();
   
-  if (!isAuthenticated) {
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <LoadingSpinner size="lg" />
+      </div>
+    );
+  }
+  
+  if (!isAuthenticated()) {
     return <Navigate to="/login" />;
   }
   
-  if (adminOnly && user?.role !== 'admin') {
+  if (adminOnly && !isAdmin()) {
     return <Navigate to="/" />;
   }
   
@@ -29,7 +38,7 @@ const MapPage: React.FC = () => {
     <div className="min-h-screen bg-gray-50">
       <Header />
       <main className="h-[calc(100vh-4rem)]">
-        <PlotMap />
+        <EnhancedPlotMap />
       </main>
     </div>
   );
@@ -39,7 +48,8 @@ function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/login" element={<LoginForm />} />
+        <Route path="/login" element={<SupabaseAuthForm mode="signin" />} />
+        <Route path="/signup" element={<SupabaseAuthForm mode="signup" />} />
         <Route path="/" element={<MapPage />} />
         <Route 
           path="/dashboard" 

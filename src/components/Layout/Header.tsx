@@ -1,16 +1,16 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { MapPin, User, LogOut, Settings } from 'lucide-react';
-import { useAuthStore } from '../../store/authStore';
+import { useSupabaseAuth } from '../../hooks/useSupabaseAuth';
 
 export const Header: React.FC = () => {
   const location = useLocation();
-  const { user, logout, isAuthenticated } = useAuthStore();
+  const { profile, signOut, isAuthenticated, isAdmin } = useSupabaseAuth();
 
   const navigation = [
     { name: 'Map', path: '/', icon: MapPin },
-    ...(user?.role === 'admin' ? [{ name: 'Admin', path: '/admin', icon: Settings }] : []),
-    ...(isAuthenticated ? [{ name: 'Dashboard', path: '/dashboard', icon: User }] : [])
+    ...(isAdmin() ? [{ name: 'Admin', path: '/admin', icon: Settings }] : []),
+    ...(isAuthenticated() ? [{ name: 'Dashboard', path: '/dashboard', icon: User }] : [])
   ];
 
   return (
@@ -52,19 +52,19 @@ export const Header: React.FC = () => {
 
           {/* User Menu */}
           <div className="flex items-center space-x-4">
-            {isAuthenticated ? (
+            {isAuthenticated() ? (
               <>
                 <div className="hidden sm:flex items-center space-x-3">
                   <div className="text-right">
-                    <p className="text-sm font-medium text-gray-900">{user?.name}</p>
-                    <p className="text-xs text-gray-500 capitalize">{user?.role}</p>
+                    <p className="text-sm font-medium text-gray-900">{profile?.name}</p>
+                    <p className="text-xs text-gray-500 capitalize">{profile?.role}</p>
                   </div>
                   <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
                     <User className="w-4 h-4 text-blue-600" />
                   </div>
                 </div>
                 <button
-                  onClick={logout}
+                  onClick={signOut}
                   className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
                   title="Logout"
                 >
